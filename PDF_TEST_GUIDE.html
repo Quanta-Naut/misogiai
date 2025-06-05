@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Text Extraction Test</title>
+</head>
+<body>
+    <h1>PDF Text Extraction Test</h1>
+    <p>To test PDF text extraction:</p>
+    <ol>
+        <li>Run the database migration: <code>add-pitch-deck-text-column.sql</code></li>
+        <li>Go to the pitch rooms page</li>
+        <li>Click "Create Session"</li>
+        <li>Upload a PDF file</li>
+        <li>Create the session</li>
+        <li>Join the session and type "minecraft" to trigger AI investment</li>
+        <li>Check console logs for extracted PDF text</li>
+    </ol>
+    
+    <h2>Required Database Migration</h2>
+    <p>Run this SQL in your Supabase dashboard:</p>
+    <pre><code>
+-- Add pitch_deck_text column to pitch_sessions table for storing extracted PDF content
+
+-- Add the pitch_deck_text column
+ALTER TABLE pitch_sessions 
+ADD COLUMN IF NOT EXISTS pitch_deck_text TEXT;
+
+-- Add comment for documentation
+COMMENT ON COLUMN pitch_sessions.pitch_deck_text IS 'Extracted text content from uploaded pitch deck PDF';
+    </code></pre>
+
+    <h2>Testing Features</h2>
+    <ul>
+        <li>✅ PDF Upload with file validation (PDF only, 10MB limit)</li>
+        <li>✅ PDF text extraction using pdf-parse</li>
+        <li>✅ Text content stored in database</li>
+        <li>✅ AI investor uses pitch deck content in responses</li>
+        <li>✅ Minecraft keyword triggers immediate investment</li>
+        <li>✅ Investment parsing using Groq AI</li>
+    </ul>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .result { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .error { background: #fee; border: 1px solid #fcc; }
+        .success { background: #efe; border: 1px solid #cfc; }
+        button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #005a87; }
+        input[type="file"] { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 PDF Extraction API Test</h1>
+        
+        <div class="result">
+            <h2>📋 Instructions</h2>
+            <ol>
+                <li><strong>Run Database Migration First:</strong>
+                    <ul>
+                        <li>Go to your Supabase dashboard</li>
+                        <li>Navigate to SQL Editor</li>
+                        <li>Run the script: <code>complete-pitch-deck-migration.sql</code></li>
+                    </ul>
+                </li>
+                <li><strong>Start Development Server:</strong>
+                    <ul>
+                        <li>Run: <code>npm run dev</code></li>
+                        <li>Make sure server is running on localhost:3000</li>
+                    </ul>
+                </li>
+                <li><strong>Test PDF Upload:</strong>
+                    <ul>
+                        <li>Select a PDF file below</li>
+                        <li>Click "Test PDF Extraction"</li>
+                        <li>Check the results</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div>
+            <h2>🧪 Test PDF Extraction</h2>
+            <input type="file" id="pdfFile" accept="application/pdf" />
+            <br>
+            <button onclick="testPDFExtraction()">Test PDF Extraction</button>
+        </div>
+
+        <div id="result" class="result" style="display: none;">
+            <h3>📊 Result</h3>
+            <pre id="resultContent"></pre>
+        </div>
+    </div>
+
+    <script>
+        async function testPDFExtraction() {
+            const fileInput = document.getElementById('pdfFile');
+            const resultDiv = document.getElementById('result');
+            const resultContent = document.getElementById('resultContent');
+            
+            if (!fileInput.files[0]) {
+                alert('Please select a PDF file first');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            
+            // Validate file type
+            if (file.type !== 'application/pdf') {
+                alert('Please select a valid PDF file');
+                return;
+            }
+
+            // Validate file size (10MB limit)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size must be less than 10MB');
+                return;
+            }
+
+            try {
+                resultContent.textContent = 'Extracting text from PDF...';
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result';
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/api/pdf-extract', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to extract PDF text');
+                }
+
+                // Display success result
+                resultDiv.className = 'result success';
+                resultContent.textContent = JSON.stringify({
+                    success: true,
+                    method: result.method,
+                    pages: result.pages,
+                    textLength: result.text.length,
+                    preview: result.text.substring(0, 500) + (result.text.length > 500 ? '...' : ''),
+                    fullText: result.text
+                }, null, 2);
+
+                console.log('Full extracted text:', result.text);
+
+            } catch (error) {
+                // Display error
+                resultDiv.className = 'result error';
+                resultContent.textContent = JSON.stringify({
+                    success: false,
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                }, null, 2);
+                
+                console.error('PDF extraction error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
