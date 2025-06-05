@@ -70,11 +70,11 @@ export default function LeaderboardPage() {
       setLoading(false)
     }
   }
+
   const loadLeaderboard = async (sortBy: string) => {
     try {
       setLoading(true)
       
-      // Query startups with their total invested amounts and related data
       const { data: startups, error } = await supabase
         .from('startups')
         .select(`
@@ -100,17 +100,13 @@ export default function LeaderboardPage() {
         return
       }
 
-      // Process the data to calculate metrics
       const processedData: LeaderboardEntry[] = startups.map((startup, index) => {
-        // Calculate total investors (unique investor IDs)
         const acceptedInvestments = startup.investments?.filter((inv: any) => inv.status === 'accepted') || []
         const uniqueInvestors = new Set(acceptedInvestments.map((inv: any) => inv.investor_id))
         const totalInvestors = uniqueInvestors.size
 
-        // Calculate average rating (placeholder - you can add ratings table later)
-        const averageRating = 4.0 + Math.random() * 1.0 // Mock rating for now
+        const averageRating = 4.0 + Math.random() * 1.0 // Mock rating
 
-        // Determine badge based on performance
         let badge = undefined
         if (startup.total_invested >= 1000000) {
           badge = 'unicorn'
@@ -136,7 +132,6 @@ export default function LeaderboardPage() {
         }
       })
 
-      // Sort based on active tab
       const sortedData = [...processedData].sort((a, b) => {
         switch (sortBy) {
           case 'invested':
@@ -152,7 +147,6 @@ export default function LeaderboardPage() {
         }
       })
 
-      // Update ranks based on sorting
       const rankedData = sortedData.map((entry, index) => ({
         ...entry,
         rank: index + 1
@@ -160,7 +154,6 @@ export default function LeaderboardPage() {
 
       setLeaderboard(rankedData)
       
-      // Find user's rank if they have a startup
       if (user) {
         const userStartup = rankedData.find(entry => entry.founder_name === user.user_metadata?.full_name)
         setUserRank(userStartup?.rank || null)
@@ -195,7 +188,7 @@ export default function LeaderboardPage() {
 
   const getValueByTab = (entry: LeaderboardEntry, tab: string) => {
     switch (tab) {
-      case 'funding':
+      case 'invested':
         return formatCurrency(entry.total_invested)
       case 'valuation':
         return formatCurrency(entry.valuation)
@@ -209,7 +202,7 @@ export default function LeaderboardPage() {
   }
 
   const LeaderboardCard = ({ entry, index }: { entry: LeaderboardEntry; index: number }) => {
-    const badge = entry.badge ? BADGES[entry.badge] : null
+    const badge = entry.badge && entry.badge in BADGES ? BADGES[entry.badge] : null;
 
     return (
       <motion.div
@@ -250,15 +243,14 @@ export default function LeaderboardPage() {
               {getValueByTab(entry, activeTab)}
             </div>
             <div className="text-sm text-gray-500">
-              {activeTab === 'funding' && `${formatCurrency(entry.valuation)} valuation`}
-              {activeTab === 'valuation' && `${formatCurrency(entry.total_funding)} raised`}
+              {activeTab === 'invested' && `${formatCurrency(entry.valuation)} valuation`}
+              {activeTab === 'valuation' && `${formatCurrency(entry.total_invested)} raised`}
               {activeTab === 'rating' && `${entry.total_investors} investors`}
               {activeTab === 'popularity' && `${entry.average_rating.toFixed(1)}/5.0 rating`}
             </div>
           </div>
         </div>
 
-        {/* Progress Bar for Top 10 */}
         {entry.rank <= 10 && (
           <div className="mt-4">
             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -291,7 +283,6 @@ export default function LeaderboardPage() {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -310,7 +301,6 @@ export default function LeaderboardPage() {
           </p>
         </motion.div>
 
-        {/* Stats Overview */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { label: 'Total Startups', value: '150+', icon: Target },
@@ -332,7 +322,6 @@ export default function LeaderboardPage() {
           ))}
         </div>
 
-        {/* Tabs */}
         <div className="mb-8">
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 overflow-x-auto">
@@ -354,14 +343,12 @@ export default function LeaderboardPage() {
           </div>
         </div>
 
-        {/* Leaderboard */}
         <div className="space-y-4">
           {leaderboard.map((entry, index) => (
             <LeaderboardCard key={entry.id} entry={entry} index={index} />
           ))}
         </div>
 
-        {/* Call to Action */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
