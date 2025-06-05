@@ -202,7 +202,7 @@ export default function LeaderboardPage() {
   }
 
   const LeaderboardCard = ({ entry, index }: { entry: LeaderboardEntry; index: number }) => {
-    const badge = entry.badge && entry.badge in BADGES ? BADGES[entry.badge] : null;
+    const badge = entry.badge && entry.badge in BADGES ? BADGES[entry.badge as keyof typeof BADGES] : null;
 
     return (
       <motion.div
