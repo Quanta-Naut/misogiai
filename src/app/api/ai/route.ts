@@ -242,7 +242,9 @@ class ServerAIService {
     try {
       const groq = this.getGroqClient()
       const models = await groq.models.list()
-      return models.data?.map(model => model.id) || []
+      return models.data
+  ?.map(model => model.id)
+  .filter((id): id is string => typeof id === 'string') || []
     } catch (error) {
       console.error('Error fetching Groq models:', error)
       return []
